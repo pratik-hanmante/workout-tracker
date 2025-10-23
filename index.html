@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>आहार व व्यायाम ट्रॅकर</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans Devanagari', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .section-title {
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            margin: 30px 0 15px 0;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .editable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .editable-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+        .editable-table th {
+            padding: 15px;
+            text-align: left;
+            font-size: 16px;
+        }
+        .editable-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .editable-table input, .editable-table textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Noto Sans Devanagari', 'Arial', sans-serif;
+            font-size: 14px;
+        }
+        .editable-table textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        .editable-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .checkbox-cell {
+            text-align: center;
+        }
+        .checkbox-cell input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .day-header {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #333;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #555;
+        }
+        .copy-section {
+            background: #f0f7ff;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .copy-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .copy-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #667eea;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            background: #667eea;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .button-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 आहार व व्यायाम ट्रॅकर (संपादनीय)</h1>
+        <p class="subtitle">एक्सेल/गूगल शीट्सच्या लिए तयार - कॉपी करा व पेस्ट करा</p>
+
+        <div class="button-container">
+            <button onclick="copyDietData()">📋 आहार डेटा कॉपी करा</button>
+            <button onclick="copyWorkoutData()">💪 व्यायाम डेटा कॉपी करा</button>
+            <button onclick="downloadAsCSV()">📥 CSV डाउनलोड करा</button>
+            <button onclick="window.print()">🖨️ प्रिंट करा</button>
+        </div>
+
+        <!-- आहार योजना टेबल -->
+        <div class="section-title">🍽️ आहार योजना (संपादनीय)</div>
+        <table class="editable-table" id="dietTable">
+            <thead>
+                <tr>
+                    <th style="width: 12%;">दिवस</th>
+                    <th style="width: 15%;">वेळ</th>
+                    <th style="width: 60%;">खाणे (परिमाण)</th>
+                    <th style="width: 13%;">खाल्ले?</th>
+                </tr>
+            </thead>
+            <tbody id="dietBody">
+            </tbody>
+        </table>
+
+        <div class="copy-section">
+            <h3>📋 आहार डेटा (TAB सेपरेटेड - एक्सेलमध्ये पेस्ट करा)</h3>
+            <textarea class="copy-textarea" id="dietCopy" readonly></textarea>
+            <button class="copy-btn" onclick="copyToClipboard('dietCopy')">✓ क्लिपबोर्डमध्ये कॉपी करा</button>
+        </div>
+
+        <!-- व्यायाम योजना टेबल -->
+        <div class="section-title">💪 व्यायाम योजना (संपादनीय)</div>
+        <table class="editable-table" id="workoutTable">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">दिवस</th>
+                    <th style="width: 65%;">व्यायाम (सेट्स × संख्या)</th>
+                    <th style="width: 15%;">पूर्ण केला?</th>
+                </tr>
+            </thead>
+            <tbody id="workoutBody">
+            </tbody>
+        </table>
+
+        <div class="copy-section">
+            <h3>💪 व्यायाम डेटा (TAB सेपरेटेड - एक्सेलमध्ये पेस्ट करा)</h3>
+            <textarea class="copy-textarea" id="workoutCopy" readonly></textarea>
+            <button class="copy-btn" onclick="copyToClipboard('workoutCopy')">✓ क्लिपबोर्डमध्ये कॉपी करा</button>
+        </div>
+    </div>
+
+    <script>
+        // Diet Data
+        const dietData = [
+            { day: 'सोमवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 2-3 बादाम' },
+            { day: 'सोमवार', time: '8:30 AM', meal: '2 जोवार भाकरी + 2 अंडे + 1 चमचे देशी घी + 1 वाटी हरी भाज्या' },
+            { day: 'सोमवार', time: '11:00 AM', meal: 'मूंगफळीचा मक्खन 2 चमचे + 1 मध्यम सेब' },
+            { day: 'सोमवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 150 ग्राम चिकन + 1 वाटी हरी भाज्या' },
+            { day: 'सोमवार', time: '4:00 PM', meal: '1 कप दही + 10 बादाम' },
+            { day: 'सोमवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 200 ग्राम मासे + 1 वाटी पालक' },
+
+            { day: 'मंगळवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 3 काजू' },
+            { day: 'मंगळवार', time: '8:30 AM', meal: '1 कप दही + 30 ग्राम मिक्स बीज' },
+            { day: 'मंगळवार', time: '11:00 AM', meal: '1 मध्यम आपल्यु + 10 बादाम' },
+            { day: 'मंगळवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 1 कप दाळ + 1 चमचे घी' },
+            { day: 'मंगळवार', time: '4:00 PM', meal: '1 कप दही + 1 कप पपई' },
+            { day: 'मंगळवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 2-3 अंडे' },
+
+            { day: 'बुधवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 2-3 अखरोट' },
+            { day: 'बुधवार', time: '8:30 AM', meal: '2 जोवार भाकरी + 2 अंडे + 1 चमचे घी + 1 वाटी पालक' },
+            { day: 'बुधवार', time: '11:00 AM', meal: '1 कप दही + 1 मध्यम आपल्यु' },
+            { day: 'बुधवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 150 ग्राम चिकन + 1 वाटी हरी भाज्या' },
+            { day: 'बुधवार', time: '4:00 PM', meal: 'मूंगफळीचा मक्खन 2 चमचे + 1 मध्यम सेब' },
+            { day: 'बुधवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 150 ग्राम झिंगा + कोबी' },
+
+            { day: 'गुरुवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 2-3 बादाम' },
+            { day: 'गुरुवार', time: '8:30 AM', meal: '1 कप दही + 30 ग्राम मिक्स बीज' },
+            { day: 'गुरुवार', time: '11:00 AM', meal: '1 कप अंकुरीत मुग + 1 मध्यम सेब' },
+            { day: 'गुरुवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 1 कप दाळ + 1 चमचे घी' },
+            { day: 'गुरुवार', time: '4:00 PM', meal: '1 कप दही + 1 कप पपई' },
+            { day: 'गुरुवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 2-3 अंडे' },
+
+            { day: 'शुक्रवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 3 काजू' },
+            { day: 'शुक्रवार', time: '8:30 AM', meal: '2 जोवार भाकरी + 2 अंडे + 1 चमचे घी' },
+            { day: 'शुक्रवार', time: '11:00 AM', meal: 'मूंगफळीचा मक्खन 2 चमचे + 1 मध्यम आपल्यु' },
+            { day: 'शुक्रवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 150 ग्राम मासे + 1 वाटी कोबी' },
+            { day: 'शुक्रवार', time: '4:00 PM', meal: '25 ग्राम बादाम + 1 कप दही' },
+            { day: 'शुक्रवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 150 ग्राम चिकन' },
+
+            { day: 'शनिवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 2-3 बादाम' },
+            { day: 'शनिवार', time: '8:30 AM', meal: '1 कप दही + 1/2 वाटी अंकुरीत मुग' },
+            { day: 'शनिवार', time: '11:00 AM', meal: '1 कप दाळीचे पाणी + 1 मध्यम संत्रा' },
+            { day: 'शनिवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 150 ग्राम चिकन + 1 वाटी ब्रोकोली' },
+            { day: 'शनिवार', time: '4:00 PM', meal: '1 कप दही + 10 बादाम' },
+            { day: 'शनिवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 200 ग्राम मासे + 1 वाटी पालक' },
+
+            { day: 'रविवार', time: '7:00 AM', meal: 'हरभरा चाय (बिनचिनी) + 3 काजू' },
+            { day: 'रविवार', time: '8:30 AM', meal: '2 जोवार भाकरी + 2 अंडे + 1 चमचे घी' },
+            { day: 'रविवार', time: '11:00 AM', meal: 'मूंगफळीचा मक्खन 2 चमचे + 1 मध्यम सेब' },
+            { day: 'रविवार', time: '1:30 PM', meal: '2 जोवार भाकरी + 1 कप दाळ + 1 चमचे घी' },
+            { day: 'रविवार', time: '4:00 PM', meal: '1 कप दही + 10 बादाम' },
+            { day: 'रविवार', time: '7:30 PM', meal: '1-2 जोवार भाकरी + 2-3 अंडे' }
+        ];
+
+        // Workout Data
+        const workoutData = [
+            { day: 'सोमवार (कोर स्ट्रेंथ)', workout: 'चाट पोज 3×30से + घुटणे छाती 2×10 + प्लॅंक 4×20से + ब्रिज 3×15 + साइड लेग 3×12 + डेड बग 3×10 + टहलणे 10मि' },
+            { day: 'मंगळवार (जेंटल योग)', workout: 'चाट पोज 2मि + बालासना 2मि + कोबरा 3×1मि + त्रिकोण 2×30से + पायांचे स्ट्रेच 2×1मि + शवासन 10मि' },
+            { day: 'बुधवार (कोर स्ट्रेंथ)', workout: 'पीठ स्ट्रेच 3×30से + ब्रिज 3×15 + क्लॅम शेल 3×15 + साइड लेग 3×12 + प्लॅंक 4×25से + साईकिलिंग 5मि + टहलणे 10मि' },
+            { day: 'गुरुवार (जेंटल योग)', workout: 'पालक स्ट्रेच 2×30से + कॅट-काऊ 15 + चाइल्ड पोज 1मि + पंजरीचा व्यायाम 5मि + खोल श्वास 10 + शवासन 10मि' },
+            { day: 'शुक्रवार (कोर स्ट्रेंथ)', workout: 'चाट पोज 3×30से + ब्रिज 3×15 + प्लॅंक 4×20से + डेड बग 3×10 + क्लॅम शेल 3×15 + साईकिलिंग 5मि + टहलणे 10मि' },
+            { day: 'शनिवार (हल्का)', workout: 'चाट पोज 2मि + बालासना 2मि + कोबरा 1मि + पायांचे स्ट्रेच 1मि + हल्का योग 10मि + शवासन 10मि' },
+            { day: 'रविवार (विश्राम)', workout: 'विश्राम दिवस - हल्का चालणे 20-30मि + ध्यान 10मि' }
+        ];
+
+        // Initialize tables
+        function initDietTable() {
+            const tbody = document.getElementById('dietBody');
+            tbody.innerHTML = '';
+            dietData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.day}</td>
+                    <td><input type="text" value="${item.time}" onchange="updateDiet()"></td>
+                    <td><textarea onchange="updateDiet()">${item.meal}</textarea></td>
+                    <td class="checkbox-cell"><input type="checkbox" onchange="updateDiet()"></td>
+                `;
+                tbody.appendChild(row);
+            });
+            updateDiet();
+        }
+
+        function initWorkoutTable() {
+            const tbody = document.getElementById('workoutBody');
+            tbody.innerHTML = '';
+            workoutData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.day}</td>
+                    <td><textarea onchange="updateWorkout()">${item.workout}</textarea></td>
+                    <td class="checkbox-cell"><input type="checkbox" onchange="updateWorkout()"></td>
+                `;
+                tbody.appendChild(row);
+            });
+            updateWorkout();
+        }
+
+        function updateDiet() {
+            const rows = document.querySelectorAll('#dietTable tbody tr');
+            let text = 'दिवस\tवेळ\tखाणे\tखाल्ले?\n';
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const day = cells[0].textContent;
+                const time = cells[1].querySelector('input').value;
+                const meal = cells[2].querySelector('textarea').value;
+                const checked = cells[3].querySelector('input').checked ? '✓' : '';
+                text += `${day}\t${time}\t${meal}\t${checked}\n`;
+            });
+            document.getElementById('dietCopy').value = text;
+        }
+
+        function updateWorkout() {
+            const rows = document.querySelectorAll('#workoutTable tbody tr');
+            let text = 'दिवस\tव्यायाम\tपूर्ण केला?\n';
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const day = cells[0].textContent;
+                const workout = cells[1].querySelector('textarea').value;
+                const checked = cells[2].querySelector('input').checked ? '✓' : '';
+                text += `${day}\t${workout}\t${checked}\n`;
+            });
+            document.getElementById('workoutCopy').value = text;
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+            alert('✓ क्लिपबोर्डमध्ये कॉपी झाले! आता एक्सेलमध्ये पेस्ट करा');
+        }
+
+        function copyDietData() {
+            copyToClipboard('dietCopy');
+        }
+
+        function copyWorkoutData() {
+            copyToClipboard('workoutCopy');
+        }
+
+        function downloadAsCSV() {
+            const dietText = document.getElementById('dietCopy').value;
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(dietText));
+            element.setAttribute('download', 'Aahar_Plan.csv');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            initDietTable();
+            initWorkoutTable();
+        };
+    </script>
+</body>
+</html>
